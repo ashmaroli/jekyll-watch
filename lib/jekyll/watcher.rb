@@ -23,7 +23,8 @@ module Jekyll
       listener = build_listener(site, options)
       listener.start
 
-      Jekyll.logger.info "Auto-regeneration:", "enabled for '#{options["source"]}'".green
+      Jekyll.logger.info "Auto-regeneration:",
+        "#{"enabled".green} for #{options["source"]}"
 
       unless options['serving']
         trap("INT") do
@@ -53,11 +54,22 @@ module Jekyll
         t = Time.now
         c = modified + added + removed
         n = c.length
-        Jekyll.logger.info("Regenerating:",
-          "#{n} file(s) changed at #{t.strftime("%Y-%m-%d %H:%M:%S")} ")
-        relative_paths = c.map { |p| site.in_source_dir(p) }
-        relative_paths.each { |f| Jekyll.logger.info "", f.cyan }
-        process site, t
+        Jekyll.logger.info "Regenerating:",
+          "#{n} file(s) changed at #{t.strftime("%Y-%m-%d %H:%M:%S")}"
+
+        c.map { |p| site.in_source_dir(p) }.each do |file|
+          Jekyll.logger.info "", f.cyan
+        end
+
+        begin
+          site.process
+          Jekyll.logger.info "", "...done in #{Time.now - t} seconds.".green
+          puts ""
+        rescue => e
+          Jekyll.logger.warn "Error:", e.message
+          Jekyll.logger.warn "Error:", "Run jekyll build --trace for more information."
+          puts ""
+        end
       end
     end
 
@@ -106,22 +118,6 @@ module Jekyll
 
     def sleep_forever
       loop { sleep 1000 }
-    end
-
-    private
-
-    def process(site, time)
-      site.process
-      Jekyll.logger.info "", "...done in #{Time.now - time} seconds.".green
-      print_clear_line
-    rescue => e
-      Jekyll.logger.warn "Error:", e.message
-      Jekyll.logger.warn "Error:", "Run jekyll build --trace for more information."
-      print_clear_line
-    end
-
-    def print_clear_line
-      Jekyll.logger.info ""
     end
   end
 end
