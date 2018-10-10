@@ -102,6 +102,10 @@ module Jekyll
 
         begin
           relative_path = absolute_path.relative_path_from(source).to_s
+          puts source
+          puts absolute_path
+          puts relative_path
+          puts
           unless relative_path.start_with?("../")
             path_to_ignore = Regexp.new(Regexp.escape(relative_path))
             Jekyll.logger.debug "Watcher:", "Ignoring #{path_to_ignore}"
